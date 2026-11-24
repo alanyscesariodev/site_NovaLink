@@ -130,6 +130,13 @@ document.addEventListener('DOMContentLoaded', () => {
     observer.observe(el);
   });
 
+  // ─── EMAILJS INIT ──────────────────────────
+  // IMPORTANTE: Substitua 'SUA_PUBLIC_KEY' pela sua chave pública do EmailJS
+  // Acesse https://www.emailjs.com para criar uma conta gratuita
+  if (typeof emailjs !== 'undefined') {
+    emailjs.init({ publicKey: 'U-BRSGL4OrAh60twm' });
+  }
+
   // ─── CONTACT FORM ─────────────────────────
   const form = document.getElementById('contactForm');
   const submitBtn = document.getElementById('submitBtn');
@@ -190,17 +197,41 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.classList.add('btn--loading');
     submitBtn.disabled = true;
 
-    // Simulate submission (replace with actual API call)
-    setTimeout(() => {
+    // Dados do formulário para envio
+    const templateParams = {
+      from_name: nome.value.trim(),
+      from_email: email.value.trim(),
+      empresa: document.getElementById('empresa').value.trim() || 'Não informada',
+      message: mensagem.value.trim()
+    };
+
+    // Enviar via EmailJS
+    // IMPORTANTE: Substitua 'SEU_SERVICE_ID' e 'SEU_TEMPLATE_ID' pelos seus IDs do EmailJS
+    if (typeof emailjs !== 'undefined' && templateParams) {
+      emailjs.send('service_rhybvcx', 'e7ub1yn', templateParams)
+        .then(() => {
+          submitBtn.classList.remove('btn--loading');
+          submitBtn.disabled = false;
+          form.reset();
+          formSuccess.classList.add('form-success--visible');
+          setTimeout(() => {
+            formSuccess.classList.remove('form-success--visible');
+          }, 5000);
+        })
+        .catch((error) => {
+          console.error('Erro ao enviar:', error);
+          submitBtn.classList.remove('btn--loading');
+          submitBtn.disabled = false;
+          alert('Erro ao enviar mensagem. Tente novamente ou entre em contato pelo WhatsApp.');
+        });
+    } else {
+      // Fallback: se EmailJS não estiver configurado, abre mailto
+      const mailtoLink = `mailto:contatonovalinktech@gmail.com?subject=Contato via site — ${templateParams.from_name}&body=Nome: ${templateParams.from_name}%0AE-mail: ${templateParams.from_email}%0AEmpresa: ${templateParams.empresa}%0A%0AMensagem:%0A${encodeURIComponent(templateParams.message)}`;
+      window.open(mailtoLink, '_blank');
       submitBtn.classList.remove('btn--loading');
       submitBtn.disabled = false;
       form.reset();
-      formSuccess.classList.add('form-success--visible');
-
-      setTimeout(() => {
-        formSuccess.classList.remove('form-success--visible');
-      }, 5000);
-    }, 1500);
+    }
   });
 
   // ─── SERVICE CARDS EXPAND ─────────────────
